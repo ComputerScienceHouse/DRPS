@@ -1,0 +1,43 @@
+# Pull base image from Docker Hub
+FROM docker.io/allebb/studio-server:latest
+
+# Install base apt packages
+WORKDIR /app
+RUN apt-get -yq update
+RUN apt install -yq screen python3-pip
+
+# Install DaVinci Resolve
+ARG RESOLVE_LINK=https://swr.cloud.blackmagicdesign.com/DaVinciResolve/v18.6.2/DaVinci_Resolve_18.6.2_Linux.zip?verify=1699125112-ui10dYFFofrLOpFCmRyftnxKbTH8b2U10RQ3GJNmHbg%3D
+ARG RESOLVE_PKG_LINK=https://www.danieltufvesson.com/download/?file=makeresolvedeb/makeresolvedeb_1.6.4_multi.sh.tar.gz
+WORKDIR /app/resolvepkg
+RUN wget -q http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+RUN wget -q $RESOLVE_LINK --output-document resolve_linux.zip
+RUN wget -q $RESOLVE_PKG_LINK --output-document makeresolvedeb.sh.tar.gz
+RUN dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+RUN apt install -yqq ocl-icd-opencl-dev fakeroot xorriso wget unzip
+RUN unzip resolve_linux.zip
+RUN tar -xvf makeresolvedeb*.sh.tar.gz
+RUN ./makeresolvedeb*multi.sh DaVinci_Resolve_*_Linux.run
+RUN dpkg -i davinci-resolve*amd64.deb
+
+WORKDIR /app
+RUN rm -rf resolvepkg/
+# Copy pip requirements and install
+COPY ./requirements.txt requirements.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
+
+# Copy everything over
+COPY . .
+#
+#RUN echo "postgres ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
+#    chmod 0440 /etc/sudoers && \
+#    chmod g+w /etc/passwd && \
+#    chown 101:101 /var/studio-server/ && \
+#    chmod 777 -R /var/studio-server/
+#
+#USER 958
+
+# Entrypoint is the Studio Server boot script
+#ENTRYPOINT ["./run-scripts/boot-script.sh"]
+#ENTRYPOINT ["cat", "/boot.sh"]
+ENTRYPOINT ["bash"]

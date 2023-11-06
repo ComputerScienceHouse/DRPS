@@ -3,3 +3,5 @@ Dockerfile
 .dockerignore
 .gitignore
 .git
+studio-server/
+studio-server-client
