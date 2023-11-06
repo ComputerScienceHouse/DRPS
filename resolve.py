@@ -1,8 +1,10 @@
 import DaVinciResolveScript as dvr
+import subprocess
+import os
+import time
 
-resolve = dvr.scriptapp("Resolve")
+
 DBLIST_PATH = "/home/atom/.local/share/DaVinciResolve/configs/.dblist"
-ACTIVEDB_PATH = "/home/atom/.local/share/DaVinciResolve/configs/.activedb"
 
 class RenderJobListEmptyException(Exception):
     "Raised when attempting to render but no jobs created beforehand"
@@ -13,7 +15,7 @@ class ProjectInvalidException(Exception):
 
     def __init__(self, message="Project was inaccessible! Please change the project first or load one."):
         super().__init__(message)
-
+        
 class TimelineRenderException(Exception):
     "Raised when there is a render error"
     pass
@@ -42,10 +44,11 @@ def load_database(db_info: dict[str, str]):
 
 def load_project(proj_name: str):
     project = get_current_project()
-    if project.GetName() == proj_name:
-        print("Project already loaded!")
-        return project
-    result = project_manager.LoadProject(proj_name)
+    if project is not None:
+        if project.GetName() == proj_name:
+            print("Project already loaded!")
+            return project
+    result = resolve.GetProjectManager().LoadProject(proj_name)
     if result:
         print(f"Project {result.GetName()} loaded!")
     else:
@@ -109,3 +112,18 @@ def get_current_project():
     if project is None:
         raise ProjectInvalidException
     return project
+
+def terminate_resolve(process):
+    process.kill()
+    
+def start_resolve() -> subprocess.Popen:
+    return subprocess.Popen([f".{os.getenv('RESOLVE_ABS_PATH')}"], cwd='/',
+                            stdout=subprocess.DEVNULL)
+
+process = start_resolve()
+resolve = dvr.scriptapp("Resolve")
+
+while resolve is None:
+    time.sleep(1)
+    resolve = dvr.scriptapp("Resolve")
+load_project("Test")
