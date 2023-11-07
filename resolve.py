@@ -3,26 +3,9 @@ import subprocess
 import os
 import time
 
-
+resolve = None
 DBLIST_PATH = "/home/atom/.local/share/DaVinciResolve/configs/.dblist"
 
-class RenderJobListEmptyException(Exception):
-    "Raised when attempting to render but no jobs created beforehand"
-    pass
-
-class ProjectInvalidException(Exception):
-    "Raised when project is inaccessible"
-
-    def __init__(self, message="Project was inaccessible! Please change the project first or load one."):
-        super().__init__(message)
-        
-class TimelineRenderException(Exception):
-    "Raised when there is a render error"
-    pass
-
-class TimelineInvalidException(Exception):
-    "Raised when timline is inaccessible"
-    pass
 
 def get_current_database() -> dict[str, str]:
     return resolve.GetProjectManager().GetCurrentDatabase()
@@ -30,15 +13,20 @@ def get_current_database() -> dict[str, str]:
 def get_database_list() -> list[dict[str, str]]:
     return resolve.GetProjectManager().GetDatabaseList()
 
-def load_database(db_info: dict[str, str]):
+def load_database(local = False, db_name: str):
     """
     Sample DB Info:
     {
-       'DbType': 'Disk' or 'Postgres',
+       'DbType': 'Disk' or 'PostgreSQL',
        'DbName': database name,
        'IpAddress': IP address (optional)
     }
     """
+
+    db_info = {
+        'DbType': 'Disk' if local else 'PostgreSQL',
+        'DbName': db_name
+    }
 
     return resolve.GetProjectManager().SetCurrentDatabase(db_info)
 
@@ -117,13 +105,30 @@ def terminate_resolve(process):
     process.kill()
     
 def start_resolve() -> subprocess.Popen:
-    return subprocess.Popen([f".{os.getenv('RESOLVE_ABS_PATH')}"], cwd='/',
+    process = subprocess.Popen([f".{os.getenv('RESOLVE_ABS_PATH')}"], cwd='/',
                             stdout=subprocess.DEVNULL)
+    global resolve
+    while resolve is None:
+        time.sleep(1)
+        resolve = dvr.scriptapp("Resolve")
+    return process
 
-process = start_resolve()
-resolve = dvr.scriptapp("Resolve")
+# error classes
+class RenderJobListEmptyException(Exception):
+    "Raised when attempting to render but no jobs created beforehand"
+    pass
 
-while resolve is None:
-    time.sleep(1)
-    resolve = dvr.scriptapp("Resolve")
-load_project("Test")
+class ProjectInvalidException(Exception):
+    "Raised when project is inaccessible"
+
+    def __init__(self, message="Project was inaccessible! Please change the project first or load one."):
+        super().__init__(message)
+        
+class TimelineRenderException(Exception):
+    "Raised when there is a render error"
+    pass
+
+class TimelineInvalidException(Exception):
+    "Raised when timeline is inaccessible"
+    pass
+
