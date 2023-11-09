@@ -6,6 +6,7 @@ echo "--- Building docker image ---"
 podman build -t drps:dev .
 
 echo "--- Running docker container ---"
+podman ps
 #docker run --rm -it --name drps-dev -p 8000:8000 -p 8543:8543 -p 5432:5432 drps:dev
 podman run --rm -it --name drps-dev \
         -d \

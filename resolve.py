@@ -4,8 +4,18 @@ import os
 import time
 
 resolve = None
-DBLIST_PATH = "/home/atom/.local/share/DaVinciResolve/configs/.dblist"
+DBLIST_PATH = "~/.local/share/DaVinciResolve/configs/.dblist"
 
+def add_db_to_list(name: str, ip: str, user: str, password: str):
+    """This function requires that you restart the resolve process
+    afterwards"""
+    line_to_add = f"{name}{ip}:{ip}:{user}:{password}:{name}:QPSQL"
+    first_line = None
+    with open(DBLIST_PATH, 'r') as file:
+        first_line = file.readline()
+    with open(DBLIST_PATH, 'w') as file:
+        file.write(first_line + "\n")
+        file.write(line_to_add)
 
 def get_current_database() -> dict[str, str]:
     return resolve.GetProjectManager().GetCurrentDatabase()
@@ -48,19 +58,19 @@ def start_rendering():
     if len(project.GetRenderJobList()) == 0:
         raise RenderJobListEmptyException("No jobs in render queue!")
     return project.StartRendering()
-    
-def add_timeline_render_job(timeline, render_preset: str, output_path: str, custom_name: str, render_format: str, render_codec: str):
+
+def get_render_job_status(job_id: str):
+    project = get_current_project()
+    return project.GetRenderJobStatus(job_id)
+
+def add_timeline_render_job(timeline, render_preset: str, render_format: str, render_codec: str, render_settings: dict):
     project = get_current_project()
     resolve.OpenPage("Deliver")
     project.SetCurrentTimeline(timeline)
     project.LoadRenderPreset(render_preset)
     project.SetCurrentRenderFormatAndCodec(render_format, render_codec)
     
-    project.SetRenderSettings({
-           "SelectAllFrames": 1,
-           "TargetDir": output_path,
-           "CustomName": custom_name
-    })
+    project.SetRenderSettings(render_settings)
 
     return project.AddRenderJob()
 
