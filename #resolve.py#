@@ -23,7 +23,7 @@ def get_current_database() -> dict[str, str]:
 def get_database_list() -> list[dict[str, str]]:
     return resolve.GetProjectManager().GetDatabaseList()
 
-def load_database(db_name: str, local=False):
+def load_database(local = False, db_name: str):
     """
     Sample DB Info:
     {

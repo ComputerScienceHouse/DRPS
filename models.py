@@ -1,7 +1,13 @@
+from typing import Optional
+
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 
 class Database(BaseModel):
-    username: str
-    db_name: str
+    name: str
     password: str
 
+@dataclass
+class Project(BaseModel):
+    database: Database
+    abs_media_dir: Optional[str]

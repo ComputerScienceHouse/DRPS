@@ -1,0 +1,16 @@
+import resolve
+import fs
+import os
+import subprocess
+
+resolve_process: None
+
+def init_resolve_proc():
+    resolve_process = resolve.start_resolve()
+
+def kill_resolve_proc():
+    resolve.terminate_resolve(resolve_process)
+    resolve_process = None
+
+def create_project():
+    
