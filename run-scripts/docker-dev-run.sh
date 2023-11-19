@@ -15,9 +15,9 @@ podman run --rm -it --name drps-dev \
 		-p 5432:5432 \
         -p 50059:50059 \
         -p 8543:8543 \
-        -v $PWD/studio-server/hooks/:/var/studio-server/hooks/ \
-        -v $PWD/studio-server/database/:/var/studio-server/database/ \
-        -v $PWD/studio-server/backups/:/var/studio-server/backups/ \
-        -v $PWD/studio-server/jobs/:/etc/cron.d/ \
+        -v "$PWD"/studio-server/hooks/:/var/studio-server/hooks/ \
+        -v "$PWD"/studio-server/database/:/var/studio-server/database/ \
+        -v "$PWD"/studio-server/backups/:/var/studio-server/backups/ \
+        -v "$PWD"/studio-server/jobs/:/etc/cron.d/ \
         drps:dev
 podman attach drps-dev

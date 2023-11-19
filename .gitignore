@@ -2,3 +2,4 @@ venv/
 .env
 studio-server/
 studio-server-client
+#*#
